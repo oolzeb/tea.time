@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>teatime</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-image: url('canvas-background.png'); /* 도화지 이미지 */
+            background-size: cover; /* 배경 이미지를 꽉 채우기 */
+            font-family: 'Courier New', Courier, monospace; /* 기본 폰트 설정을 타자기 스타일로 */
+            height: 100vh; /* 뷰포트 높이 */
+            display: flex; /* 중앙 정렬을 위한 flexbox 사용 */
+            align-items: center; /* 수직 중앙 정렬 */
+            justify-content: center; /* 수평 중앙 정렬 */
+        }
+
+        .container {
+            position: relative;
+            text-align: center;
+        }
+
+        .image {
+            cursor: pointer; /* 클릭 가능하게 설정 */
+            transition: transform 0.1s; /* 클릭 시 약간의 모션 효과 */
+        }
+
+        #coffeeCup {
+            width: 330px; /* 커피잔 크기 조정 */
+            position: relative; /* 상대 위치 설정 */
+            z-index: 2; /* 컵이 연기보다 위에 보이도록 설정 */
+            bottom: -160px; /* 컵과 연기가 맞도록 설정 */
+        }
+
+        #smoke {
+            width: 240px; /* 연기 크기 조정 */
+            position: absolute; /* 절대 위치 설정 */
+            left: 50%; /* 중앙 정렬 */
+            transform: translateX(-50%); /* 중앙 정렬 조정 */
+            bottom: 73px; /* 컵 위쪽 위치 조정 (컵과 연기를 맞춤) */
+            display: none; /* 기본적으로 숨김 */
+            opacity: 0; /* 처음에 투명하게 설정 */
+        }
+
+        .typewriter {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #333;
+            font-size: 15px; /* 타자기 효과 텍스트 크기 조정 */
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <img src="coffee-cup.png" alt="커피잔" id="coffeeCup" class="image" onclick="playMusic()">
+        <img src="smoke.png" alt="연기" id="smoke" class="image" style="display: none;">
+    </div>
+
+    <div class="typewriter">
+        <h2 id="typewriterText"></h2>
+    </div>
+
+    <audio id="audio" src="your-song.mp3"></audio> <!-- 음악 파일 연결 -->
+
+    <script>
+        let isPlaying = false; // 음악이 재생 중인지 여부
+        let smokeAnimationInterval; // 연기 애니메이션 interval ID
+        const smoke = document.getElementById('smoke');
+        const audio = document.getElementById('audio');
+        const coffeeCup = document.getElementById('coffeeCup');
+
+        // 커피잔을 클릭했을 때의 기능
+        function playMusic() {
+            if (!isPlaying) {
+                // 음악 재생 및 연기 애니메이션 시작
+                audio.play();
+                isPlaying = true;
+                animateSmoke(); // 연기 애니메이션 시작
+                coffeeCup.style.transform = 'scale(1.1)'; // 약간 확대
+                setTimeout(() => {
+                    coffeeCup.style.transform = 'scale(1)'; // 원래 크기로 되돌림
+                }, 100);
+            } else {
+                // 음악 중지
+                audio.pause();
+                audio.currentTime = 0; // 음악 재설정
+                isPlaying = false;
+
+                // 연기 애니메이션 중단
+                clearSmokeAnimation(); // 연기 애니메이션 중단
+                smoke.style.display = 'none'; // 연기 숨기기
+            }
+        }
+
+        function animateSmoke() {
+            smoke.style.display = 'block'; // 연기 보이기
+            let opacity = 0; // 초기 opacity 설정
+            smoke.style.opacity = opacity; // 연기 초기 투명도 설정
+
+            // 불투명도 증가 애니메이션
+            smokeAnimationInterval = setInterval(() => {
+                if (opacity >= 1) {
+                    clearInterval(smokeAnimationInterval);
+                    fadeOutSmoke(); // 불투명도가 최대가 되면 서서히 사라지게
+                } else {
+                    opacity += 0.02; // 불투명도 증가
+                    smoke.style.opacity = opacity;
+                }
+            }, 100); // 시간 간격 조정 (100ms)
+        }
+
+        function fadeOutSmoke() {
+            let opacity = 1; // 최대 불투명도 설정
+
+            const fadeOut = setInterval(() => {
+                if (opacity <= 0) {
+                    clearInterval(fadeOut);
+                    smoke.style.display = 'none'; // 애니메이션 후 숨김
+                    animateSmoke(); // 다시 애니메이션 시작
+                } else {
+                    opacity -= 0.02; // 불투명도 감소
+                    smoke.style.opacity = opacity;
+                }
+            }, 100); // 시간 간격 조정 (80ms)
+        }
+
+        function clearSmokeAnimation() {
+            clearInterval(smokeAnimationInterval); // 연기 애니메이션 중단
+            smoke.style.opacity = 0; // 불투명도 초기화
+        }
+
+        // 타자기 효과
+        const text = "tab the cub and enjoy your tea time.";
+        let index = 0;
+
+        function typeWriter() {
+            if (index < text.length) {
+                document.getElementById("typewriterText").innerHTML += text.charAt(index);
+                index++;
+                setTimeout(typeWriter, 100); // 100ms 간격으로 문자 추가
+            }
+        }
+
+        typeWriter();
+    </script>
+</body>
+</html>
